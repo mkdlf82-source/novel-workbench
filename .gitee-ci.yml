@@ -1,0 +1,34 @@
+version: '1.0'
+name: daily-hotspots
+displayName: 每日热点自动抓取
+triggers:
+  schedule:
+    # 每天北京时间 8:00 (UTC 00:00)
+    - cron: '0 0 * * *'
+
+stages:
+  - name: fetch-stage
+    displayName: 抓取&生成
+    jobs:
+      - name: fetch-hotspots
+        displayName: 运行抓取脚本
+        steps:
+          - name: python-run
+            displayName: 执行热点抓取
+            image: python:3.11
+            script: |
+              pip install --quiet requests
+              python scripts/daily_hotspots.py
+          
+          - name: git-commit
+            displayName: 提交结果到仓库
+            script: |
+              git config user.email "hotspot-bot@gitee.com"
+              git config user.name "Hotspot Bot"
+              git add hotspots_export.json hotspots_daily_*.md
+              if ! git diff --cached --quiet; then
+                git commit -m "每日热点自动更新 $(date +%Y%m%d)"
+                git push origin master
+              else
+                echo "无新内容，跳过提交"
+              fi
