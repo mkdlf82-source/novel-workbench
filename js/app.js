@@ -970,7 +970,9 @@ function bindEvents() {
 async function autoFetchHotspots() {
   const AUTO_KEY = 'novel_workbench_auto_imported_ids';
   try {
-    const resp = await fetch('hotspots_export.json?_t=' + Date.now());
+    // 从 GitHub 拉取最新热点数据（云端自动任务生成，无需开机）
+    const GITHUB_RAW = 'https://raw.githubusercontent.com/mkdlf82-source/novel-workbench/main/hotspots_export.json';
+    const resp = await fetch(GITHUB_RAW + '?_t=' + Date.now());
     if (!resp.ok) return;
     const data = await resp.json();
     let hotspots = data.hotspots || data.hotspotsExport || data;

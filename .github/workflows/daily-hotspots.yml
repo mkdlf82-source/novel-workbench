@@ -2,42 +2,38 @@ name: 每日热点抓取 & 小说梗转化
 
 on:
   schedule:
-    # 北京时间每天早上 8:00 (UTC 0:00)
-    - cron: "0 0 * * *"
-  workflow_dispatch:  # 允许手动触发
-
-permissions:
-  contents: write
+    # UTC 0:00 = 北京时间 8:00 AM，每天跑一次
+    - cron: '0 0 * * *'
+  # 允许手动触发（用于测试）
+  workflow_dispatch:
 
 jobs:
   fetch-hotspots:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 安装 Python
+      - name: 设置 Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: '3.12'
 
       - name: 运行热点抓取脚本
         run: python scripts/daily_hotspots.py
 
-      - name: 提交生成的文件
+      - name: 提交并推送变更
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # 检查是否有新文件
-          if git diff --quiet && git diff --staged --quiet && [ -z "$(git ls-files --others --exclude-standard hotspots_export.json hotspots_daily_*.md)" ]; then
-            echo "没有新文件，跳过提交"
-            exit 0
-          fi
-
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
           git add hotspots_export.json hotspots_daily_*.md
-          git commit -m "📰 每日热点更新 — $(date +'%Y-%m-%d')"
-          git push
-        env:
-          TZ: "Asia/Shanghai"
+          if git diff --staged --quiet; then
+            echo "没有新的热点数据，跳过提交"
+          else
+            git commit -m "每日热点更新 $(date +%Y-%m-%d)"
+            git push
+            echo "✅ 热点数据已推送"
+          fi
