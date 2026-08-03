@@ -1,0 +1,11 @@
+# WorkBuddy project memory (don't commit personal work logs)
+.workbuddy/memory/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
